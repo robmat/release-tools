@@ -1,0 +1,24 @@
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+}
+
+repositories {
+    google()
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+gradlePlugin {
+    plugins {
+        releaseTools {
+            id = 'com.batodev.releasetools'
+            implementationClass = 'com.batodev.releasetools.ReleaseToolsPlugin'
+        }
+    }
+}
+
+dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+}

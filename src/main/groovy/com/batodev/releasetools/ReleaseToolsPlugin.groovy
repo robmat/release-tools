@@ -22,6 +22,8 @@ class ReleaseToolsPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
+        relocateBuildDirs(project)
+
         File versionPropsFile = project.file("version.properties")
 
         // versionCode/versionName are read from version.properties by the consuming
@@ -53,6 +55,17 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             task.group = "publishing"
             task.description = "Promotes the current internal testing release to production."
         }
+    }
+
+    // These workspaces live inside a Box Sync-synced folder, which intermittently
+    // locks files under build/intermediates while syncing (observed as
+    // "Couldn't delete ...R.jar" build failures). Redirecting build output to a
+    // local, non-synced directory avoids that entirely.
+    private static void relocateBuildDirs(Project project) {
+        String repoName = project.rootDir.name
+        File externalRoot = new File("E:/tmp/gradle-builds/${repoName}")
+        project.rootProject.layout.buildDirectory.set(new File(externalRoot, "root"))
+        project.layout.buildDirectory.set(new File(externalRoot, project.name))
     }
 
     private static boolean wasRequested(Project project, String taskName) {

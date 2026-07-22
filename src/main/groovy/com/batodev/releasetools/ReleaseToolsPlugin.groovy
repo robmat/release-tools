@@ -30,6 +30,13 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             task.group = "publishing"
             task.description = "Bumps versionCode/versionName in version.properties, then builds and publishes to the internal testing track."
             task.dependsOn("publishReleaseBundle")
+            // doLast only runs once publishReleaseBundle (a dependency) has actually
+            // succeeded - if the build fails partway (e.g. a compile error), Gradle
+            // aborts before this runs, so a failed release leaves an uncommitted bump
+            // on disk instead of a commit falsely recording a published release.
+            task.doLast {
+                commitVersionBump(project, versionPropsFile)
+            }
         }
 
         project.tasks.register("promoteInternalToProd", PromoteInternalToProdTask) { task ->
@@ -72,5 +79,20 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         }
         parts[1] = String.valueOf(Integer.parseInt(parts[1]) + 1)
         return parts.join(".")
+    }
+
+    private static void commitVersionBump(Project project, File versionPropsFile) {
+        Properties props = new Properties()
+        versionPropsFile.withInputStream { props.load(it) }
+        String versionName = props.getProperty("versionName")
+
+        project.exec { spec ->
+            spec.workingDir = project.rootDir
+            spec.commandLine = ["git", "add", versionPropsFile.absolutePath]
+        }
+        project.exec { spec ->
+            spec.workingDir = project.rootDir
+            spec.commandLine = ["git", "commit", "-m", "rel: ${versionName}" as String]
+        }
     }
 }

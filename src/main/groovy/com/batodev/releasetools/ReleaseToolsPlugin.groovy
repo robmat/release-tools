@@ -2,6 +2,9 @@ package com.batodev.releasetools
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.process.ExecOperations
+
+import javax.inject.Inject
 
 /**
  * Shared release-automation tasks for the game projects in this workspace.
@@ -9,6 +12,13 @@ import org.gradle.api.Project
  * in each project's settings.gradle - no publishing step required.
  */
 class ReleaseToolsPlugin implements Plugin<Project> {
+
+    private final ExecOperations execOperations
+
+    @Inject
+    ReleaseToolsPlugin(ExecOperations execOperations) {
+        this.execOperations = execOperations
+    }
 
     @Override
     void apply(Project project) {
@@ -35,7 +45,7 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             // aborts before this runs, so a failed release leaves an uncommitted bump
             // on disk instead of a commit falsely recording a published release.
             task.doLast {
-                commitVersionBump(project, versionPropsFile)
+                commitVersionBump(execOperations, project, versionPropsFile)
             }
         }
 
@@ -81,16 +91,16 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         return parts.join(".")
     }
 
-    private static void commitVersionBump(Project project, File versionPropsFile) {
+    private static void commitVersionBump(ExecOperations execOperations, Project project, File versionPropsFile) {
         Properties props = new Properties()
         versionPropsFile.withInputStream { props.load(it) }
         String versionName = props.getProperty("versionName")
 
-        project.exec { spec ->
+        execOperations.exec { spec ->
             spec.workingDir = project.rootDir
             spec.commandLine = ["git", "add", versionPropsFile.absolutePath]
         }
-        project.exec { spec ->
+        execOperations.exec { spec ->
             spec.workingDir = project.rootDir
             spec.commandLine = ["git", "commit", "-m", "rel: ${versionName}" as String]
         }

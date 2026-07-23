@@ -24,6 +24,10 @@ class ReleaseToolsPlugin implements Plugin<Project> {
     void apply(Project project) {
         relocateBuildDirs(project)
 
+        def extension = project.extensions.create("releaseTools", ReleaseToolsExtension)
+        extension.publishTaskName.convention("publishReleaseBundle")
+        extension.promoteTaskName.convention("promoteReleaseArtifact")
+
         File versionPropsFile = project.file("version.properties")
 
         // versionCode/versionName are read from version.properties by the consuming
@@ -41,7 +45,7 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         project.tasks.register("createNewInternalTestVersion") { task ->
             task.group = "publishing"
             task.description = "Bumps versionCode/versionName in version.properties, then builds and publishes to the internal testing track."
-            task.dependsOn("publishReleaseBundle")
+            task.dependsOn(extension.publishTaskName)
             // doLast only runs once publishReleaseBundle (a dependency) has actually
             // succeeded - if the build fails partway (e.g. a compile error), Gradle
             // aborts before this runs, so a failed release leaves an uncommitted bump
@@ -54,6 +58,7 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         project.tasks.register("promoteInternalToProd", PromoteInternalToProdTask) { task ->
             task.group = "publishing"
             task.description = "Promotes the current internal testing release to production."
+            task.promoteTaskName.set(extension.promoteTaskName)
         }
     }
 
@@ -109,13 +114,17 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         versionPropsFile.withInputStream { props.load(it) }
         String versionName = props.getProperty("versionName")
 
+        // "git commit" with no pathspec commits the *entire* index, not just what
+        // was just "git add"-ed - if the repo already has unrelated files staged
+        // (observed on antimine_with_pics_as_prizes), those would get swept into
+        // this commit too. Scoping both calls to the exact file avoids that.
         execOperations.exec { spec ->
             spec.workingDir = project.rootDir
             spec.commandLine = ["git", "add", versionPropsFile.absolutePath]
         }
         execOperations.exec { spec ->
             spec.workingDir = project.rootDir
-            spec.commandLine = ["git", "commit", "-m", "rel: ${versionName}" as String]
+            spec.commandLine = ["git", "commit", "-m", "rel: ${versionName}" as String, "--", versionPropsFile.absolutePath]
         }
     }
 }

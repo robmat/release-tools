@@ -60,6 +60,34 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             task.description = "Promotes the current internal testing release to production."
             task.promoteTaskName.set(extension.promoteTaskName)
         }
+
+        restrictDependencyUpdatesToStable(project)
+    }
+
+    // com.github.ben-manes.versions' "dependencyUpdates" task (and, downstream,
+    // se.patrikerdes.use-latest-versions' bumps, which just read its report) treats
+    // any newer version as "outdated" by default - alpha/beta/rc/M/SNAPSHOT included.
+    // Without this filter, useLatestVersions happily bumps real dependencies to
+    // pre-release versions (observed: appcompat 1.8.0-alpha01, navigation 2.10.0-alpha06,
+    // media3-exoplayer 1.11.0-rc01 across most of the workspace). Reject any candidate
+    // that looks unstable unless the *current* version is itself already unstable, per
+    // the plugin's own documented pattern (README: "RejectVersionsIf and componentSelection").
+    // pluginManager.withPlugin fires regardless of whether ben-manes.versions was applied
+    // before or after this plugin in the consuming project's plugins {} block.
+    private static void restrictDependencyUpdatesToStable(Project project) {
+        project.pluginManager.withPlugin("com.github.ben-manes.versions") {
+            project.tasks.named("dependencyUpdates").configure { task ->
+                task.rejectVersionIf {
+                    isNonStable(it.candidate.version) && !isNonStable(it.currentVersion)
+                }
+            }
+        }
+    }
+
+    private static boolean isNonStable(String version) {
+        boolean stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { version.toUpperCase().contains(it) }
+        boolean isStableVersion = version ==~ /^[0-9,.v-]+(-r)?$/
+        return !stableKeyword && !isStableVersion
     }
 
     // These workspaces live inside a Box Sync-synced folder, which intermittently

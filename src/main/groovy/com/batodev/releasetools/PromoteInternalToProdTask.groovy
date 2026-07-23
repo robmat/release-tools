@@ -1,6 +1,8 @@
 package com.batodev.releasetools
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecOperations
@@ -19,10 +21,14 @@ abstract class PromoteInternalToProdTask extends DefaultTask {
     @Inject
     abstract ExecOperations getExecOperations()
 
+    @Input
+    abstract Property<String> getPromoteTaskName()
+
     @TaskAction
     void promote() {
         String wrapper = OperatingSystem.current().isWindows() ? "gradlew.bat" : "./gradlew"
         File rootDir = project.rootDir
+        String taskPath = "${project.path}:${promoteTaskName.get()}"
 
         project.logger.lifecycle("Promoting ${project.name} from 'internal' to 'production'...")
 
@@ -30,7 +36,7 @@ abstract class PromoteInternalToProdTask extends DefaultTask {
             spec.workingDir = rootDir
             spec.commandLine = [
                     wrapper,
-                    ":app:promoteReleaseArtifact",
+                    taskPath,
                     "--from-track", "internal",
                     "--promote-track", "production",
             ]

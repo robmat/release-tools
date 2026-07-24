@@ -26,20 +26,26 @@ abstract class PromoteInternalToProdTask extends DefaultTask {
 
     @TaskAction
     void promote() {
-        String wrapper = OperatingSystem.current().isWindows() ? "gradlew.bat" : "./gradlew"
         File rootDir = project.rootDir
         String taskPath = "${project.path}:${promoteTaskName.get()}"
+        List<String> wrapperArgs = [
+                taskPath,
+                "--from-track", "internal",
+                "--promote-track", "production",
+        ]
 
         project.logger.lifecycle("Promoting ${project.name} from 'internal' to 'production'...")
 
         execOperations.exec { spec ->
             spec.workingDir = rootDir
-            spec.commandLine = [
-                    wrapper,
-                    taskPath,
-                    "--from-track", "internal",
-                    "--promote-track", "production",
-            ]
+            if (OperatingSystem.current().isWindows()) {
+                // .bat files aren't directly executable via CreateProcess - they
+                // need cmd /c to interpret them, otherwise this fails with
+                // "CreateProcess error=2" regardless of workingDir/PATH.
+                spec.commandLine = ["cmd", "/c", ".\\gradlew.bat"] + wrapperArgs
+            } else {
+                spec.commandLine = ["./gradlew"] + wrapperArgs
+            }
         }
     }
 }

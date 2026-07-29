@@ -83,6 +83,10 @@ androidxTestCore = "1.7.0"
 androidxTestMonitor = "1.8.0"
 androidxConcurrentFutures = "1.2.0"
 navigationCompose = "2.9.1"
+composeUiTestJunit4Pinned = "1.11.4"
+androidxTestUiautomator = "2.4.0"
+fastlaneScreengrab = "2.1.1"
+androidxTestRules = "1.7.0"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }
@@ -154,6 +158,13 @@ androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling
 androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+androidx-compose-activity-compose = { module = "androidx.activity:activity-compose" }
+androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+androidx-compose-ui-test-junit4-pinned = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "composeUiTestJunit4Pinned" }
+androidx-compose-material-icons-core = { module = "androidx.compose.material:material-icons-core" }
+androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "androidxTestUiautomator" }
+fastlane-screengrab = { module = "tools.fastlane:screengrab", version.ref = "fastlaneScreengrab" }
+androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxTestRules" }
 # snake-game-android-main's own direct-pinned Compose (not BOM-managed).
 snake-androidx-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "snakeComposeUi" }
 snake-androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "snakeComposeUi" }

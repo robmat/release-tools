@@ -61,17 +61,21 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             task.promoteTaskName.set(extension.promoteTaskName)
         }
 
+        // Applied here instead of via `id` in every consuming build.gradle - it
+        // ships on this plugin's own classpath (see release-tools/build.gradle).
+        project.pluginManager.apply('com.github.ben-manes.versions')
+
         restrictDependencyUpdatesToStable(project)
     }
 
-    // com.github.ben-manes.versions' "dependencyUpdates" task (and, downstream,
-    // se.patrikerdes.use-latest-versions' bumps, which just read its report) treats
-    // any newer version as "outdated" by default - alpha/beta/rc/M/SNAPSHOT included.
-    // Without this filter, useLatestVersions happily bumps real dependencies to
-    // pre-release versions (observed: appcompat 1.8.0-alpha01, navigation 2.10.0-alpha06,
-    // media3-exoplayer 1.11.0-rc01 across most of the workspace). Reject any candidate
-    // that looks unstable unless the *current* version is itself already unstable, per
-    // the plugin's own documented pattern (README: "RejectVersionsIf and componentSelection").
+    // com.github.ben-manes.versions' "dependencyUpdates" task treats any newer
+    // version as "outdated" by default - alpha/beta/rc/M/SNAPSHOT included.
+    // Without this filter, its report (and anyone reading it, human or tool)
+    // would flag real dependencies against pre-release versions (observed: appcompat
+    // 1.8.0-alpha01, navigation 2.10.0-alpha06, media3-exoplayer 1.11.0-rc01 across
+    // most of the workspace). Reject any candidate that looks unstable unless the
+    // *current* version is itself already unstable, per the plugin's own documented
+    // pattern (README: "RejectVersionsIf and componentSelection").
     // pluginManager.withPlugin fires regardless of whether ben-manes.versions was applied
     // before or after this plugin in the consuming project's plugins {} block.
     private static void restrictDependencyUpdatesToStable(Project project) {

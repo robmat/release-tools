@@ -25,4 +25,8 @@ gradlePlugin {
 dependencies {
     implementation gradleApi()
     implementation localGroovy()
+
+    // Applied programmatically onto consuming projects by ReleaseToolsPlugin,
+    // so consuming build.gradle files no longer declare this id themselves.
+    implementation 'com.github.ben-manes:gradle-versions-plugin:0.54.0'
 }

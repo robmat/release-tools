@@ -82,6 +82,7 @@ glideCompose = "1.0.0-alpha.1"
 androidxTestCore = "1.7.0"
 androidxTestMonitor = "1.8.0"
 androidxConcurrentFutures = "1.2.0"
+navigationCompose = "2.9.1"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }
@@ -130,6 +131,7 @@ eclipsesource-j2v8-win32 = { module = "com.eclipsesource.j2v8:j2v8_win32_x86_64"
 androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
 androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityKtx" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
@@ -157,6 +159,9 @@ snake-androidx-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "
 snake-androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "snakeComposeUi" }
 snake-androidx-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "snakeMaterial3" }
 snake-androidx-compose-material-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "snakeMaterialIconsCore" }
+snake-androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "snakeComposeUi" }
+snake-androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "snakeComposeUi" }
+snake-androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "snakeComposeUi" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 coil-gif = { module = "io.coil-kt:coil-gif", version.ref = "coilCompose" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "androidxDatastorePreferences" }
@@ -165,6 +170,7 @@ androidx-browser = { module = "androidx.browser:browser", version.ref = "android
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
 androidx-test-monitor = { module = "androidx.test:monitor", version.ref = "androidxTestMonitor" }
 androidx-concurrent-futures = { module = "androidx.concurrent:concurrent-futures", version.ref = "androidxConcurrentFutures" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

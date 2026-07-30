@@ -87,6 +87,7 @@ composeUiTestJunit4Pinned = "1.11.4"
 androidxTestUiautomator = "2.4.0"
 fastlaneScreengrab = "2.1.1"
 androidxTestRules = "1.7.0"
+androidxTestRunner = "1.7.0"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }
@@ -166,6 +167,7 @@ androidx-compose-material-icons-core = { module = "androidx.compose.material:mat
 androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "androidxTestUiautomator" }
 fastlane-screengrab = { module = "tools.fastlane:screengrab", version.ref = "fastlaneScreengrab" }
 androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxTestRules" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
 # snake-game-android-main's own direct-pinned Compose (not BOM-managed).
 snake-androidx-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "snakeComposeUi" }
 snake-androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "snakeComposeUi" }

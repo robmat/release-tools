@@ -4,8 +4,9 @@ plugins {
 }
 
 // This workspace lives inside a Box Sync-synced folder, which intermittently
-// locks files under build/ while syncing. Keep this project's own output local.
-layout.buildDirectory.set(new File("E:/tmp/gradle-builds/release-tools"))
+// locks files under build/ while syncing. Keep this project's own output outside
+// the synced tree — the JVM temp dir never is.
+layout.buildDirectory.set(new File(System.getProperty('java.io.tmpdir'), 'gradle-builds/release-tools'))
 
 repositories {
     google()

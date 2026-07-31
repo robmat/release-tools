@@ -100,9 +100,17 @@ class ReleaseToolsPlugin implements Plugin<Project> {
     // local, non-synced directory avoids that entirely.
     private static void relocateBuildDirs(Project project) {
         String repoName = project.rootDir.name
-        File externalRoot = new File("E:/tmp/gradle-builds/${repoName}")
+        File externalRoot = new File(buildOutputBase(), repoName)
         project.rootProject.layout.buildDirectory.set(new File(externalRoot, "root"))
         project.layout.buildDirectory.set(new File(externalRoot, project.name))
+    }
+
+    // The JVM temp dir sits outside every sync root, on every platform. Deliberately
+    // not a fixed drive letter: if that drive isn't mounted, Gradle dies while
+    // pre-creating task outputs with an opaque "Cannot invoke File.exists() because
+    // parent is null" NPE rather than anything pointing at the real cause.
+    private static File buildOutputBase() {
+        return new File(System.getProperty("java.io.tmpdir"), "gradle-builds")
     }
 
     private static boolean wasRequested(Project project, String taskName) {

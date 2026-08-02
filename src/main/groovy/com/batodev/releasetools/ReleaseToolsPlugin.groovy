@@ -98,19 +98,28 @@ class ReleaseToolsPlugin implements Plugin<Project> {
     // locks files under build/intermediates while syncing (observed as
     // "Couldn't delete ...R.jar" build failures). Redirecting build output to a
     // local, non-synced directory avoids that entirely.
+    //
+    // The redirect target must share a drive letter with the project: KSP2's Analysis API
+    // worker throws "this and base files have different roots" when relativizing a generated
+    // source (e.g. BuildConfig.java, which lives under buildDir) against the project dir if
+    // they're on different drives (https://github.com/google/ksp/issues/1079) - and KSP1,
+    // which didn't have that codepath, was removed as of KSP 2.3.x, so there's no escape
+    // hatch via ksp.useKSP2=false anymore. java.io.tmpdir (usually the user's profile on C:)
+    // can't guarantee that, so the temp root is derived from the project's own drive instead.
     private static void relocateBuildDirs(Project project) {
         String repoName = project.rootDir.name
-        File externalRoot = new File(buildOutputBase(), repoName)
+        File externalRoot = new File(buildOutputBase(project), repoName)
         project.rootProject.layout.buildDirectory.set(new File(externalRoot, "root"))
         project.layout.buildDirectory.set(new File(externalRoot, project.name))
     }
 
-    // The JVM temp dir sits outside every sync root, on every platform. Deliberately
-    // not a fixed drive letter: if that drive isn't mounted, Gradle dies while
-    // pre-creating task outputs with an opaque "Cannot invoke File.exists() because
-    // parent is null" NPE rather than anything pointing at the real cause.
-    private static File buildOutputBase() {
-        return new File(System.getProperty("java.io.tmpdir"), "gradle-builds")
+    // Sibling to the project on its own drive rather than inside it, so it's still outside
+    // the Box Sync sync tree - but same drive, so KSP2 can always relativize against it.
+    // Deliberately not a fixed drive letter: derived from wherever the project is actually
+    // checked out, so this keeps working if that ever differs machine to machine.
+    private static File buildOutputBase(Project project) {
+        File driveRoot = project.rootDir.toPath().getRoot().toFile()
+        return new File(driveRoot, "tmp/gradle-builds")
     }
 
     private static boolean wasRequested(Project project, String taskName) {

@@ -22,10 +22,10 @@
 #      AGP/Kotlin) - cataloguing one member without the rest would be
 #      misleading, not simplifying.
 # Re-check case 1 periodically with:
-# clear && find . -name 'build.gradle*' -print0 | xargs -0 grep -E '\("[^"]*([0-9]+\.)+[0-9]+' | grep -v 'strictly("'
-# a dependency kept literal because it was
-# single-repo can silently become a real multi-repo duplicate (this is how
-# Room and kotlinx-coroutines-core ended up here on 2026-08-05 - both were
+#   find . -name 'build.gradle*' -print0 | xargs -0 grep -E '\("[^"]*([0-9]+\.)+[0-9]+' | grep -v 'strictly("'
+# A dependency kept literal only because it was single-repo can silently
+# become a real multi-repo duplicate (this is how Room and
+# kotlinx-coroutines-core ended up here on 2026-08-05 - both were
 # "single-repo, stays literal" until a second repo picked them up at the same
 # version and nobody noticed). See RELEASE_TRACKER_HISTORY.md's "Shared
 # version catalog" sections for the full reconciliation history and
@@ -106,6 +106,27 @@ androidxTestRules = "1.7.0"
 androidxTestRunner = "1.7.0"
 androidxRoom = "2.8.4"
 kotlinxCoroutinesCore = "1.11.0"
+koin = "4.0.0"
+mockitoKotlin = "6.2.3"
+appyx = "1.7.1"
+hilt = "2.56.1"
+androidxHiltNavigationCompose = "1.2.0"
+acra = "5.9.7"
+# sudoku_with_pretty_girls pins Compose directly (no BOM), same shape as the
+# snake-game-android-main family above - own version lines, not BOM-managed.
+sudokuComposeUi = "1.7.8"
+sudokuLifecycleRuntimeCompose = "2.8.7"
+# arrows_game's own compose-bom pin, behind the generic composeBom above -
+# a dedicated alias (not strictly()) because strictly() doesn't compile
+# wrapped in platform(...), see policy note above.
+arrowsComposeBom = "2026.02.01"
+googleUmp = "4.0.0"
+konfettiCompose = "2.0.5"
+aboutlibrariesComposeM3 = "14.0.0-b02"
+aboutlibrariesCompose = "10.6.1"
+androidxAnnotationExperimental = "1.5.1"
+pmd = "7.24.0"
+sudokuAccompanist = "0.28.0"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }
@@ -207,6 +228,33 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "androidxRoom" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidxRoom" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesCore" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
+bumble-appyx-core = { module = "com.bumble.appyx:core", version.ref = "appyx" }
+bumble-appyx-testing-ui = { module = "com.bumble.appyx:testing-ui", version.ref = "appyx" }
+bumble-appyx-testing-ui-activity = { module = "com.bumble.appyx:testing-ui-activity", version.ref = "appyx" }
+bumble-appyx-testing-unit-common = { module = "com.bumble.appyx:testing-unit-common", version.ref = "appyx" }
+bumble-appyx-testing-junit5 = { module = "com.bumble.appyx:testing-junit5", version.ref = "appyx" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
+androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidxHiltNavigationCompose" }
+acra-dialog = { module = "ch.acra:acra-dialog", version.ref = "acra" }
+acra-mail = { module = "ch.acra:acra-mail", version.ref = "acra" }
+sudoku-androidx-compose-ui-util = { module = "androidx.compose.ui:ui-util", version.ref = "sudokuComposeUi" }
+sudoku-androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "sudokuComposeUi" }
+sudoku-androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "sudokuLifecycleRuntimeCompose" }
+arrows-androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "arrowsComposeBom" }
+google-ump = { module = "com.google.android.ump:user-messaging-platform", version.ref = "googleUmp" }
+dionsegijn-konfetti-compose = { module = "nl.dionsegijn:konfetti-compose", version.ref = "konfettiCompose" }
+mikepenz-aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutlibrariesComposeM3" }
+mikepenz-aboutlibraries-compose = { module = "com.mikepenz:aboutlibraries-compose", version.ref = "aboutlibrariesCompose" }
+androidx-annotation-experimental = { module = "androidx.annotation:annotation-experimental", version.ref = "androidxAnnotationExperimental" }
+pmd-cli = { module = "net.sourceforge.pmd:pmd-cli", version.ref = "pmd" }
+pmd-kotlin = { module = "net.sourceforge.pmd:pmd-kotlin", version.ref = "pmd" }
+google-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "sudokuAccompanist" }
+google-accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "sudokuAccompanist" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

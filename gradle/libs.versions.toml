@@ -6,14 +6,30 @@
 #       }
 #   }
 #
-# Policy: every dependency whose version is actually consistent wherever it's
-# used lives here, even if only one repo currently uses it. A dependency stays
-# literal/local in a project ONLY when its version genuinely diverges from
-# what's declared here (a real, different version - documented inline in that
-# project's build file) - never just because it's currently single-repo. See
-# RELEASE_TRACKER_HISTORY.md's "Shared version catalog" sections for the full
-# reconciliation history and RELEASE_TRACKER.md's "Shared catalog" column for
-# per-repo/branch status.
+# Policy: every dependency that CAN be routed through this catalog belongs here,
+# full stop - "only one repo currently uses it" is never a reason to keep a
+# literal. A dependency stays literal/local ONLY for one of these concrete
+# reasons, each documented inline at its use site:
+#   1. Genuine version divergence from what's declared here - use
+#      `libs.x { version { strictly("...") } }`, NOT a disconnected literal
+#      string, so the drift stays visible and searchable.
+#   2. A confirmed Gradle compile failure prevents `libs.x`/`strictly()` from
+#      being used at all - wrapped in `platform(...)`, or referenced from
+#      inside a `Plugin<Project>` Kotlin source file.
+#   3. A tightly-coupled multi-artifact version family unique to one repo,
+#      where every member's version is pinned to the others (libGDX+KTX,
+#      Kotlin+KSP compiler-plugin pairs, sgtpuzzles' buildSrc-resolved
+#      AGP/Kotlin) - cataloguing one member without the rest would be
+#      misleading, not simplifying.
+# Re-check case 1 periodically with:
+# clear && find . -name 'build.gradle*' -print0 | xargs -0 grep -E '\("[^"]*([0-9]+\.)+[0-9]+' | grep -v 'strictly("'
+# a dependency kept literal because it was
+# single-repo can silently become a real multi-repo duplicate (this is how
+# Room and kotlinx-coroutines-core ended up here on 2026-08-05 - both were
+# "single-repo, stays literal" until a second repo picked them up at the same
+# version and nobody noticed). See RELEASE_TRACKER_HISTORY.md's "Shared
+# version catalog" sections for the full reconciliation history and
+# RELEASE_TRACKER.md's "Shared catalog" column for per-repo/branch status.
 
 [versions]
 agp = "9.3.1"
@@ -88,6 +104,8 @@ androidxTestUiautomator = "2.4.0"
 fastlaneScreengrab = "2.1.1"
 androidxTestRules = "1.7.0"
 androidxTestRunner = "1.7.0"
+androidxRoom = "2.8.4"
+kotlinxCoroutinesCore = "1.11.0"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }
@@ -185,6 +203,10 @@ androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTes
 androidx-test-monitor = { module = "androidx.test:monitor", version.ref = "androidxTestMonitor" }
 androidx-concurrent-futures = { module = "androidx.concurrent:concurrent-futures", version.ref = "androidxConcurrentFutures" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidxRoom" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "androidxRoom" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidxRoom" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

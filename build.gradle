@@ -30,4 +30,12 @@ dependencies {
     // Applied programmatically onto consuming projects by ReleaseToolsPlugin,
     // so consuming build.gradle files no longer declare this id themselves.
     implementation 'com.github.ben-manes:gradle-versions-plugin:0.54.0'
+
+    // Same reasoning: every app's `play { ... }` config is byte-identical (same
+    // service-account credentials file, "internal" track, app bundles), so it's
+    // applied and configured here too instead of duplicated 27+ times. Real
+    // implementation artifact behind the `com.github.triplet.play` plugin marker
+    // (com.github.triplet.play:com.github.triplet.play.gradle.plugin:4.0.0's pom) -
+    // version kept in sync with `gpp` in release-tools/gradle/libs.versions.toml.
+    implementation 'com.github.triplet.gradle:play-publisher:4.0.0'
 }

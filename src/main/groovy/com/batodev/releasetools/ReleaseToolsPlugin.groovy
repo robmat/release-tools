@@ -66,6 +66,24 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         project.pluginManager.apply('com.github.ben-manes.versions')
 
         restrictDependencyUpdatesToStable(project)
+
+        // Every consuming app declared its own byte-identical `id("com.github.triplet.play")`
+        // + `play { ... }` block (same credentials file, same "internal" track). Centralized
+        // the same way as ben-manes.versions above: applied programmatically from this
+        // plugin's own classpath, configured once here instead of 27+ times.
+        project.pluginManager.apply('com.github.triplet.play')
+        configurePlayPublishing(project)
+    }
+
+    // service account credentials file lives one level above every game's repo root
+    // (i.e. directly under the Box Sync workspace root), alongside keystore.properties.
+    private static void configurePlayPublishing(Project project) {
+        project.extensions.configure('play') { extension ->
+            extension.serviceAccountCredentials.set(
+                    project.rootProject.file("../play-console-api-465319-0f9c399097c5.json"))
+            extension.track.set("internal")
+            extension.defaultToAppBundles.set(true)
+        }
     }
 
     // com.github.ben-manes.versions' "dependencyUpdates" task treats any newer

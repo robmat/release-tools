@@ -98,6 +98,13 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         }
         project.tasks.named('cpdCheck') { task ->
             task.source = project.rootProject.subprojects.collectMany { mainSourceDirs(it) }
+            // QQWing is a faithful port of the third-party QQWing solver/generator
+            // (see the "CHECKED!" comments tracking manual verification against the
+            // original); its row/column/section methods are intentionally parallel
+            // implementations, not accidental copy-paste, so refactoring them to
+            // dedupe risks correctness regressions in the puzzle solver for no
+            // real benefit.
+            task.exclude '**/core/qqwing/QQWing.kt'
         }
     }
 

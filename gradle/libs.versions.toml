@@ -125,6 +125,7 @@ konfettiCompose = "2.0.5"
 aboutlibrariesComposeM3 = "14.0.0-b02"
 aboutlibrariesCompose = "10.6.1"
 androidxAnnotationExperimental = "1.5.1"
+cpdPlugin = "4.0.22"
 pmd = "7.24.0"
 sudokuAccompanist = "0.28.0"
 
@@ -251,8 +252,6 @@ dionsegijn-konfetti-compose = { module = "nl.dionsegijn:konfetti-compose", versi
 mikepenz-aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutlibrariesComposeM3" }
 mikepenz-aboutlibraries-compose = { module = "com.mikepenz:aboutlibraries-compose", version.ref = "aboutlibrariesCompose" }
 androidx-annotation-experimental = { module = "androidx.annotation:annotation-experimental", version.ref = "androidxAnnotationExperimental" }
-pmd-cli = { module = "net.sourceforge.pmd:pmd-cli", version.ref = "pmd" }
-pmd-kotlin = { module = "net.sourceforge.pmd:pmd-kotlin", version.ref = "pmd" }
 google-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "sudokuAccompanist" }
 google-accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "sudokuAccompanist" }
 

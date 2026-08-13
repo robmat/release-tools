@@ -2,6 +2,7 @@ package com.batodev.releasetools
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.process.ExecOperations
 
 import javax.inject.Inject
@@ -73,6 +74,81 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         // plugin's own classpath, configured once here instead of 27+ times.
         project.pluginManager.apply('com.github.triplet.play')
         configurePlayPublishing(project)
+
+        // Same centralization for copy/paste detection: applied and configured once
+        // here instead of every repo hand-rolling its own PMD CLI invocation (or, worse,
+        // 27+ copies drifting out of sync on threshold/language).
+        project.pluginManager.apply('org.danilopianini.cpd')
+        configureCpd(project)
+    }
+
+    // 50 tokens (vs PMD CPD's own default of 100) matches the threshold
+    // screws_android's original hand-rolled task used - loose enough to skip
+    // trivial boilerplate but tight enough to catch smaller copy-paste blocks.
+    // The plugin only scans the project it's applied to (an app/android module)
+    // by default; consuming repos are multi-module (core/android/lwjgl3/... for
+    // libGDX-style projects), so the source is pointed at every subproject's
+    // actual configured source dirs instead, or cross-module duplication would
+    // go undetected.
+    private static void configureCpd(Project project) {
+        project.extensions.configure('cpd') { extension ->
+            extension.language = 'kotlin'
+            extension.minimumTokenCount = 50
+            extension.toolVersion = pmdVersion(project)
+        }
+        project.tasks.named('cpdCheck') { task ->
+            task.source = project.rootProject.subprojects.collectMany { mainSourceDirs(it) }
+        }
+    }
+
+    // Single source of truth for the PMD engine version is `pmd` in
+    // release-tools/gradle/libs.versions.toml - read at apply-time rather than
+    // hardcoded a second time here, where it would silently drift out of sync.
+    private static String pmdVersion(Project project) {
+        File toml = new File(project.rootProject.projectDir, "../release-tools/gradle/libs.versions.toml")
+        def match = toml.text =~ /(?m)^pmd\s*=\s*"([^"]+)"/
+        if (!match.find()) {
+            throw new IllegalStateException("Could not find `pmd` version in ${toml}")
+        }
+        return match.group(1)
+    }
+
+    // Reads each subproject's *actual* configured main source dirs instead of
+    // guessing `src/main/java`/`src/main/kotlin` by convention - those happen to
+    // match every subproject here today, but silently miss anything that
+    // customizes its source layout. Android app/library subprojects expose
+    // `android.sourceSets` (AGP's own source-set model, not a standard
+    // SourceSetContainer); plain Kotlin/Java subprojects (java-library +
+    // org.jetbrains.kotlin.jvm) expose the standard one instead - a subproject
+    // has exactly one of the two, so both are probed and whichever exists wins.
+    private static List<File> mainSourceDirs(Project subproject) {
+        List<File> dirs = []
+
+        def androidMain = subproject.extensions.findByName('android')?.sourceSets?.findByName('main')
+        if (androidMain != null) {
+            dirs.addAll(androidMain.java.srcDirs)
+            dirs.addAll(kotlinSrcDirs(androidMain))
+        }
+
+        def javaMain = subproject.extensions.findByType(SourceSetContainer)?.findByName('main')
+        if (javaMain != null) {
+            dirs.addAll(javaMain.java.srcDirs)
+            dirs.addAll(kotlinSrcDirs(javaMain))
+        }
+
+        return dirs.findAll { it.exists() }
+    }
+
+    // The `kotlin` source-dir accessor only exists on a source set once the
+    // Kotlin Gradle plugin has actually decorated it - probed rather than
+    // assumed so pure-Java subprojects (e.g. `ios`/`lwjgl3` launchers) don't
+    // blow up here.
+    private static List<File> kotlinSrcDirs(sourceSet) {
+        try {
+            return new ArrayList<File>(sourceSet.kotlin.srcDirs)
+        } catch (MissingPropertyException ignored) {
+            return []
+        }
     }
 
     // service account credentials file lives one level above every game's repo root

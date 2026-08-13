@@ -38,4 +38,12 @@ dependencies {
     // (com.github.triplet.play:com.github.triplet.play.gradle.plugin:4.0.0's pom) -
     // version kept in sync with `gpp` in release-tools/gradle/libs.versions.toml.
     implementation 'com.github.triplet.gradle:play-publisher:4.0.0'
+
+    // Copy/paste detection, applied and configured here so every app gets it for
+    // free instead of hand-rolling a PMD CLI invocation per repo (screws_android
+    // used to do exactly that, worked around de.aaschmid.cpd being incompatible
+    // with Gradle 9). This is that plugin's actively maintained fork/successor -
+    // resolved via its plugin-marker POM, same technique as play-publisher above.
+    // Version kept in sync with `cpdPlugin` in release-tools/gradle/libs.versions.toml.
+    implementation 'org.danilopianini.cpd:org.danilopianini.cpd.gradle.plugin:4.0.22'
 }

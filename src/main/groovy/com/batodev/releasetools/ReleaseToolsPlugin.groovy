@@ -105,6 +105,15 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             // dedupe risks correctness regressions in the puzzle solver for no
             // real benefit.
             task.exclude '**/core/qqwing/QQWing.kt'
+            // mainSourceDirs() above can include a subproject's generated-sources dir
+            // (e.g. com.github.gmazzo.buildconfig's output), which doesn't exist until
+            // that subproject's own generation task has run. Gradle's task-validation
+            // (enabled by the configuration cache) flags reading such a directory
+            // without a declared dependency as an "implicit dependency", since nothing
+            // then guarantees generation happens before this task scans it.
+            task.dependsOn(project.rootProject.subprojects.collectMany { subproject ->
+                subproject.tasks.matching { it.name == 'generateBuildConfigClasses' }
+            })
         }
     }
 

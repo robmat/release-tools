@@ -106,13 +106,20 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             // real benefit.
             task.exclude '**/core/qqwing/QQWing.kt'
             // mainSourceDirs() above can include a subproject's generated-sources dir
-            // (e.g. com.github.gmazzo.buildconfig's output), which doesn't exist until
+            // (e.g. com.github.gmazzo.buildconfig's generateBuildConfigClasses output,
+            // or screws_android's own ios:generateAdIds), which doesn't exist until
             // that subproject's own generation task has run. Gradle's task-validation
             // (enabled by the configuration cache) flags reading such a directory
             // without a declared dependency as an "implicit dependency", since nothing
-            // then guarantees generation happens before this task scans it.
+            // then guarantees generation happens before this task scans it. Named
+            // explicitly rather than matched generically (e.g. by task name pattern or
+            // output-path overlap) - a consuming repo adding another generated-sources
+            // task is rare enough that a one-line addition here when it happens is
+            // simpler than generic matching logic every subproject's tasks would pay
+            // the configuration-time cost of.
+            List<String> generatedSourceTaskNames = ['generateBuildConfigClasses', 'generateAdIds']
             task.dependsOn(project.rootProject.subprojects.collectMany { subproject ->
-                subproject.tasks.matching { it.name == 'generateBuildConfigClasses' }
+                subproject.tasks.matching { generatedSourceTaskNames.contains(it.name) }
             })
         }
     }

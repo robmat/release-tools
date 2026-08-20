@@ -153,6 +153,13 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             boolean isAndroidModule = subproject.pluginManager.hasPlugin('com.android.application') ||
                     subproject.pluginManager.hasPlugin('com.android.library')
             ext.android.set(isAndroidModule)
+
+            // Without this, ktlint's standard function-naming rule (which predates
+            // Compose and knows nothing about it) flags every @Composable function
+            // that emits UI for using PascalCase - which is the correct, conventional
+            // name style for those functions, not a violation. This is ktlint's own
+            // documented fix for Compose codebases, not a project-specific workaround.
+            ext.additionalEditorconfig.set(['ktlint_function_naming_ignore_when_annotated_with': 'Composable'])
         }
 
         // compose-rules is Compose-aware: it only fires on files that actually

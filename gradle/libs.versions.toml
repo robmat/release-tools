@@ -255,6 +255,16 @@ androidx-annotation-experimental = { module = "androidx.annotation:annotation-ex
 google-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "sudokuAccompanist" }
 google-accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "sudokuAccompanist" }
 
+# release-tools' own build.gradle dependencies (the plugin's implementation
+# classpath, not something a consuming app declares) - real implementation
+# artifacts behind the benManesVersions/gpp/cpdPlugin version aliases above,
+# which were previously kept in sync with this file by hand-written comment
+# only. Routed through the same aliases so release-tools dogfoods the exact
+# catalog it hands out to every other repo.
+benmanes-gradle-versions-plugin = { module = "com.github.ben-manes:gradle-versions-plugin", version.ref = "benManesVersions" }
+triplet-play-publisher = { module = "com.github.triplet.gradle:play-publisher", version.ref = "gpp" }
+danilopianini-cpd-plugin = { module = "org.danilopianini.cpd:org.danilopianini.cpd.gradle.plugin", version.ref = "cpdPlugin" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }

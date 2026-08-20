@@ -1,6 +1,9 @@
+import org.gradle.api.plugins.quality.CodeNarc
+
 plugins {
     id 'groovy'
     id 'java-gradle-plugin'
+    id 'codenarc'
 }
 
 // This workspace lives inside a Box Sync-synced folder, which intermittently
@@ -29,21 +32,37 @@ dependencies {
 
     // Applied programmatically onto consuming projects by ReleaseToolsPlugin,
     // so consuming build.gradle files no longer declare this id themselves.
-    implementation 'com.github.ben-manes:gradle-versions-plugin:0.54.0'
+    implementation libs.benmanes.gradle.versions.plugin
 
     // Same reasoning: every app's `play { ... }` config is byte-identical (same
     // service-account credentials file, "internal" track, app bundles), so it's
     // applied and configured here too instead of duplicated 27+ times. Real
     // implementation artifact behind the `com.github.triplet.play` plugin marker
-    // (com.github.triplet.play:com.github.triplet.play.gradle.plugin:4.0.0's pom) -
-    // version kept in sync with `gpp` in release-tools/gradle/libs.versions.toml.
-    implementation 'com.github.triplet.gradle:play-publisher:4.0.0'
+    // (com.github.triplet.play:com.github.triplet.play.gradle.plugin's pom) -
+    // version now sourced from the same `gpp` alias as that plugin marker.
+    implementation libs.triplet.play.publisher
 
     // Copy/paste detection, applied and configured here so every app gets it for
     // free instead of hand-rolling a PMD CLI invocation per repo (screws_android
     // used to do exactly that, worked around de.aaschmid.cpd being incompatible
     // with Gradle 9). This is that plugin's actively maintained fork/successor -
     // resolved via its plugin-marker POM, same technique as play-publisher above.
-    // Version kept in sync with `cpdPlugin` in release-tools/gradle/libs.versions.toml.
-    implementation 'org.danilopianini.cpd:org.danilopianini.cpd.gradle.plugin:4.0.22'
+    implementation libs.danilopianini.cpd.plugin
+}
+
+// CodeNarc is Groovy's equivalent of the detekt setup every Android app in this
+// workspace runs - added so `lint`/static-analysis works uniformly across the
+// whole fleet, including this (non-Android, Groovy) repo.
+codenarc {
+    toolVersion = '4.0.0'
+    configFile = file('config/codenarc/codenarc.xml')
+}
+
+// No AGP here to provide the `lint` task every other repo in the workspace has -
+// this alias makes the same `./gradlew lint` invocation work uniformly across
+// the fleet instead of needing a repo-type carve-out.
+tasks.register('lint') {
+    group = 'verification'
+    description = 'Runs CodeNarc static analysis (this repo\'s equivalent of the Android `lint` task).'
+    dependsOn tasks.withType(CodeNarc)
 }

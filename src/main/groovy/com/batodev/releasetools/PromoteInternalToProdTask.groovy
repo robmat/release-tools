@@ -38,7 +38,7 @@ abstract class PromoteInternalToProdTask extends DefaultTask {
 
         execOperations.exec { spec ->
             spec.workingDir = rootDir
-            if (OperatingSystem.current().isWindows()) {
+            if (OperatingSystem.current().windows) {
                 // .bat files aren't directly executable via CreateProcess - they
                 // need cmd /c to interpret them, otherwise this fails with
                 // "CreateProcess error=2" regardless of workingDir/PATH.

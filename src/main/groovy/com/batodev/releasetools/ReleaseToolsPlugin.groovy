@@ -126,7 +126,7 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         if (!match.find()) {
             throw new IllegalStateException("Could not find `pmd` version in ${toml}")
         }
-        return match.group(1)
+        match.group(1)
     }
 
     // Reads each subproject's *actual* configured main source dirs instead of
@@ -152,7 +152,7 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             dirs.addAll(kotlinSrcDirs(javaMain))
         }
 
-        return dirs.findAll { it.exists() }
+        dirs.findAll { it.exists() }
     }
 
     // The `kotlin` source-dir accessor only exists on a source set once the
@@ -201,7 +201,7 @@ class ReleaseToolsPlugin implements Plugin<Project> {
     private static boolean isNonStable(String version) {
         boolean stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { version.toUpperCase().contains(it) }
         boolean isStableVersion = version ==~ /^[0-9,.v-]+(-r)?$/
-        return !stableKeyword && !isStableVersion
+        !stableKeyword && !isStableVersion
     }
 
     // These workspaces live inside a Box Sync-synced folder, which intermittently
@@ -228,8 +228,8 @@ class ReleaseToolsPlugin implements Plugin<Project> {
     // Deliberately not a fixed drive letter: derived from wherever the project is actually
     // checked out, so this keeps working if that ever differs machine to machine.
     private static File buildOutputBase(Project project) {
-        File driveRoot = project.rootDir.toPath().getRoot().toFile()
-        return new File(driveRoot, "tmp/gradle-builds")
+        File driveRoot = project.rootDir.toPath().root.toFile()
+        new File(driveRoot, "tmp/gradle-builds")
     }
 
     private static boolean wasRequested(Project project, String taskName) {
@@ -265,7 +265,7 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             parts = parts[0..1]
         }
         parts[1] = String.valueOf(Integer.parseInt(parts[1]) + 1)
-        return parts.join(".")
+        parts.join(".")
     }
 
     private static void commitVersionBump(ExecOperations execOperations, Project project, File versionPropsFile) {

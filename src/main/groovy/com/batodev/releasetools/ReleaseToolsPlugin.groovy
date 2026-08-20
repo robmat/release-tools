@@ -5,6 +5,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.process.ExecOperations
+import org.jlleitschuh.gradle.ktlint.KtlintPlugin
 
 import javax.inject.Inject
 
@@ -96,19 +97,48 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         wireKtlintFleetWide(project)
     }
 
+    // Listened for by plugin id, not just 'org.jetbrains.kotlin.android'/'org.jetbrains.kotlin.jvm'
+    // - AGP 9's built-in Kotlin support (the 'android.builtInKotlin' default flipped to true,
+    // see AGP's own deprecation warning for the old opt-out) means several repos' Android
+    // modules (e.g. arrows_game's :app and its android-library convention plugin) never apply
+    // a separate kotlin-android plugin id at all, compiling Kotlin via AGP itself instead -
+    // 'org.jetbrains.kotlin.android' alone silently missed those modules entirely.
+    private static final List<String> KOTLIN_BEARING_PLUGIN_IDS = [
+            'com.android.application',
+            'com.android.library',
+            'org.jetbrains.kotlin.android',
+            'org.jetbrains.kotlin.jvm',
+    ]
+
     private static void wireKtlintFleetWide(Project project) {
         project.rootProject.subprojects.each { subproject ->
-            subproject.pluginManager.withPlugin('org.jetbrains.kotlin.android') {
-                applyKtlint(subproject)
-            }
-            subproject.pluginManager.withPlugin('org.jetbrains.kotlin.jvm') {
-                applyKtlint(subproject)
+            KOTLIN_BEARING_PLUGIN_IDS.each { pluginId ->
+                subproject.pluginManager.withPlugin(pluginId) {
+                    applyKtlint(subproject)
+                }
             }
         }
     }
 
     private static void applyKtlint(Project subproject) {
-        subproject.pluginManager.apply('org.jlleitschuh.gradle.ktlint')
+        // A module can match more than one id above (e.g. com.android.library +
+        // org.jetbrains.kotlin.android both applied) - each firing its own withPlugin
+        // listener - so guard against configuring the same subproject twice.
+        if (subproject.plugins.hasPlugin(KtlintPlugin)) {
+            return
+        }
+
+        // Applied by class reference, not by string id ('subproject.pluginManager.apply(<id>)')
+        // - id-based lookup resolves against *that specific subproject's own* buildscript
+        // classpath, which only ever includes the ktlint plugin for the one module that
+        // itself declares `id 'com.batodev.releasetools'` (real failure observed on
+        // arrows_game's `domain` module and antimine_with_pics_as_prizes' 19 modules:
+        // "Plugin with id 'org.jlleitschuh.gradle.ktlint' not found", silently producing
+        // zero changes rather than an error visible in this method's own output). Class-based
+        // apply() instantiates the already-loaded KtlintPlugin class directly - it's on
+        // *this* plugin's own classpath (declared in release-tools/build.gradle) - so it
+        // reaches every subproject regardless of that subproject's own classpath.
+        subproject.pluginManager.apply(KtlintPlugin)
 
         VersionCatalogsExtension catalogs = subproject.rootProject.extensions.getByType(VersionCatalogsExtension)
         def libs = catalogs.named('libs')

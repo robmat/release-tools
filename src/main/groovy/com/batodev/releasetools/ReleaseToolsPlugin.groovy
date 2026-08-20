@@ -2,6 +2,7 @@ package com.batodev.releasetools
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.process.ExecOperations
 
@@ -80,6 +81,54 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         // 27+ copies drifting out of sync on threshold/language).
         project.pluginManager.apply('org.danilopianini.cpd')
         configureCpd(project)
+
+        // ktlint formatting, fleet-wide. Wired from here (rather than an `id` in
+        // every module's build.gradle, the way detekt is declared) because unlike
+        // detekt it needs no per-module config path - one policy for the whole
+        // workspace - and because this plugin is only ever applied to a repo's
+        // main app module, not every subproject (confirmed: `com.batodev.releasetools`
+        // appears in exactly one build.gradle per repo even in 19-module repos like
+        // antimine_with_pics_as_prizes, where detekt's own `id` is declared in all
+        // 19 individually instead). Walking rootProject.subprojects here and
+        // registering a deferred `withPlugin` listener - rather than requiring
+        // this plugin to already be applied - is what reaches every Kotlin module
+        // regardless of Gradle's subproject configuration order.
+        wireKtlintFleetWide(project)
+    }
+
+    private static void wireKtlintFleetWide(Project project) {
+        project.rootProject.subprojects.each { subproject ->
+            subproject.pluginManager.withPlugin('org.jetbrains.kotlin.android') {
+                applyKtlint(subproject)
+            }
+            subproject.pluginManager.withPlugin('org.jetbrains.kotlin.jvm') {
+                applyKtlint(subproject)
+            }
+        }
+    }
+
+    private static void applyKtlint(Project subproject) {
+        subproject.pluginManager.apply('org.jlleitschuh.gradle.ktlint')
+
+        VersionCatalogsExtension catalogs = subproject.rootProject.extensions.getByType(VersionCatalogsExtension)
+        def libs = catalogs.named('libs')
+        String ktlintEngineVersion = libs.findVersion('ktlintEngine').get().requiredVersion
+        String composeRulesCoordinate = libs.findLibrary('nlopez-compose-rules-ktlint').get().get().toString()
+
+        subproject.extensions.configure('ktlint') { ext ->
+            ext.version.set(ktlintEngineVersion)
+            // Android Kotlin style guide (4-space continuation indent etc.) for
+            // modules AGP actually applies to; plain Kotlin modules (e.g. a
+            // libGDX `core`) get ktlint's own default style instead.
+            boolean isAndroidModule = subproject.pluginManager.hasPlugin('com.android.application') ||
+                    subproject.pluginManager.hasPlugin('com.android.library')
+            ext.android.set(isAndroidModule)
+        }
+
+        // compose-rules is Compose-aware: it only fires on files that actually
+        // use Compose APIs, so adding it to every Kotlin module (not just the
+        // ones using Compose today) is a no-op for the rest rather than noise.
+        subproject.dependencies.add('ktlintRuleset', composeRulesCoordinate)
     }
 
     // 50 tokens (vs PMD CPD's own default of 100) matches the threshold

@@ -48,6 +48,12 @@ dependencies {
     // with Gradle 9). This is that plugin's actively maintained fork/successor -
     // resolved via its plugin-marker POM, same technique as play-publisher above.
     implementation libs.danilopianini.cpd.plugin
+
+    // ktlint formatting, applied programmatically to every Kotlin-bearing
+    // subproject (not just the one declaring `com.batodev.releasetools`) so
+    // multi-module repos get it fleet-wide without per-module build.gradle
+    // edits - same plugin-marker-POM technique as triplet/cpd above.
+    implementation libs.jlleitschuh.ktlint.gradle.plugin
 }
 
 // CodeNarc is Groovy's equivalent of the detekt setup every Android app in this

@@ -128,6 +128,14 @@ androidxAnnotationExperimental = "1.5.1"
 cpdPlugin = "4.0.22"
 pmd = "7.24.0"
 sudokuAccompanist = "0.28.0"
+ktlintGradlePlugin = "14.2.0"
+# Engine version explicitly pinned (rather than trusting the plugin's shifting
+# default, see its own changelog note that the default "may change between
+# patch versions") specifically because composeRulesKtlint below requires
+# ktlint 1.8.0+ - an unpinned default drifting below that would silently break
+# ruleset loading.
+ktlintEngine = "1.8.0"
+composeRulesKtlint = "0.6.4"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }
@@ -264,6 +272,12 @@ google-accompanist-pager-indicators = { module = "com.google.accompanist:accompa
 benmanes-gradle-versions-plugin = { module = "com.github.ben-manes:gradle-versions-plugin", version.ref = "benManesVersions" }
 triplet-play-publisher = { module = "com.github.triplet.gradle:play-publisher", version.ref = "gpp" }
 danilopianini-cpd-plugin = { module = "org.danilopianini.cpd:org.danilopianini.cpd.gradle.plugin", version.ref = "cpdPlugin" }
+jlleitschuh-ktlint-gradle-plugin = { module = "org.jlleitschuh.gradle.ktlint:org.jlleitschuh.gradle.ktlint.gradle.plugin", version.ref = "ktlintGradlePlugin" }
+# Compose-specific ktlint ruleset (state hoisting, modifier param position/naming,
+# @Composable naming, etc.) - actively maintained fork of the original Twitter
+# Compose rules. Applied fleet-wide from ReleaseToolsPlugin (see its ktlintRuleset
+# wiring); a no-op on modules that don't use Compose.
+nlopez-compose-rules-ktlint = { module = "io.nlopez.compose.rules:ktlint", version.ref = "composeRulesKtlint" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -143,7 +143,7 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         VersionCatalogsExtension catalogs = subproject.rootProject.extensions.getByType(VersionCatalogsExtension)
         def libs = catalogs.named('libs')
         String ktlintEngineVersion = libs.findVersion('ktlintEngine').get().requiredVersion
-        String composeRulesCoordinate = libs.findLibrary('nlopez-compose-rules-ktlint').get().get().toString()
+        String composeRulesCoordinate = libs.findLibrary('nlopez-compose-rules-ktlint').get().get()
 
         subproject.extensions.configure('ktlint') { ext ->
             ext.version.set(ktlintEngineVersion)
@@ -154,12 +154,38 @@ class ReleaseToolsPlugin implements Plugin<Project> {
                     subproject.pluginManager.hasPlugin('com.android.library')
             ext.android.set(isAndroidModule)
 
-            // Without this, ktlint's standard function-naming rule (which predates
-            // Compose and knows nothing about it) flags every @Composable function
-            // that emits UI for using PascalCase - which is the correct, conventional
-            // name style for those functions, not a violation. This is ktlint's own
-            // documented fix for Compose codebases, not a project-specific workaround.
-            ext.additionalEditorconfig.set(['ktlint_function_naming_ignore_when_annotated_with': 'Composable'])
+            // ktlint_function_naming_ignore_when_annotated_with: without this,
+            // ktlint's standard function-naming rule (which predates Compose and
+            // knows nothing about it) flags every @Composable function that emits UI
+            // for using PascalCase - the correct, conventional name style for those
+            // functions, not a violation. This is ktlint's own documented fix for
+            // Compose codebases, not a project-specific workaround.
+            //
+            // compose_allowed_composition_locals: theme data exposed via a static
+            // CompositionLocal (the very pattern MaterialTheme itself uses) is an
+            // intentional, idiomatic design choice, not the CompositionLocal overuse
+            // the compose-rules allowlist check guards against. Allowlisting the
+            // fleet's theme locals keeps that check active for genuinely ad-hoc ones.
+            ext.additionalEditorconfig.set([
+                    'ktlint_function_naming_ignore_when_annotated_with': 'Composable',
+                    'compose_allowed_composition_locals'               : 'LocalThemeColors,LocalBoardColors',
+            ])
+
+            // Never lint generated Kotlin (e.g. BuildConfig.kt under
+            // build/generated/...): we neither author it nor can fix its style - its
+            // formatting is the generator's, not ours. CPD already skips generated
+            // sources (via the task deps in configureCpd below); mirror that for
+            // ktlint by dropping any file under a 'generated' output dir.
+            ext.filter { exclude { element ->
+                String p = element.file.absolutePath.replace(File.separator, '/')
+                // generated sources (BuildConfig, etc.) - never ours to author/fix
+                p.contains('/generated/') ||
+                    // vendored third-party code, owned/styled upstream not here - the
+                    // same files are excluded from CPD in configureCpd below (QQWing;
+                    // Chris Boyle's sgtpuzzles port under name.boyle.chris)
+                    p.contains('/core/qqwing/') ||
+                    p.contains('/name/boyle/chris/')
+            } }
         }
 
         // compose-rules is Compose-aware: it only fires on files that actually
@@ -191,6 +217,14 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             // dedupe risks correctness regressions in the puzzle solver for no
             // real benefit.
             task.exclude '**/core/qqwing/QQWing.kt'
+            // name.boyle.chris.sgtpuzzles is vendored upstream - Chris Boyle's
+            // Android port of Simon Tatham's Portable Puzzle Collection, which
+            // sgtpuzzles/blocknetpuzzle is built on. Its GameEngine interface and
+            // ConfigBuilder deliberately mirror the same config-setter signatures
+            // (an API contract, not accidental copy-paste); deduping vendored
+            // upstream would diverge it from upstream for no benefit - same
+            // rationale as QQWing above.
+            task.exclude '**/name/boyle/chris/**'
             // mainSourceDirs() above can include a subproject's generated-sources dir
             // (e.g. com.github.gmazzo.buildconfig's generateBuildConfigClasses output,
             // or screws_android's own ios:generateAdIds), which doesn't exist until

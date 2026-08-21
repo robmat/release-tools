@@ -72,3 +72,15 @@ tasks.register('lint') {
     description = 'Runs CodeNarc static analysis (this repo\'s equivalent of the Android `lint` task).'
     dependsOn tasks.withType(CodeNarc)
 }
+
+// This Groovy plugin project has no Kotlin (so no ktlint) and no CPD sources of
+// its own - CodeNarc is its equivalent static-analysis gate. Alias the other
+// fleet-wide task names to it too, so a uniform `./gradlew lint cpdCheck
+// ktlintCheck` runs the real gate here instead of failing with "task not found".
+['cpdCheck', 'ktlintCheck'].each { aliasName ->
+    tasks.register(aliasName) {
+        group = 'verification'
+        description = "Fleet-wide alias -> CodeNarc (this repo has no Kotlin/CPD sources of its own)."
+        dependsOn tasks.withType(CodeNarc)
+    }
+}

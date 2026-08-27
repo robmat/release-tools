@@ -45,6 +45,8 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             bumpVersion(versionPropsFile)
         }
 
+        File rootDir = project.rootDir
+
         project.tasks.register("createNewInternalTestVersion") { task ->
             task.group = "publishing"
             task.description = "Bumps versionCode/versionName in version.properties, then builds and publishes to the internal testing track."
@@ -53,8 +55,11 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             // succeeded - if the build fails partway (e.g. a compile error), Gradle
             // aborts before this runs, so a failed release leaves an uncommitted bump
             // on disk instead of a commit falsely recording a published release.
+            //
+            // Captures rootDir (a File) rather than project itself - the config
+            // cache can't serialize a Project reference captured in a task action.
             task.doLast {
-                commitVersionBump(execOperations, project, versionPropsFile)
+                commitVersionBump(execOperations, rootDir, versionPropsFile)
             }
         }
 
@@ -395,7 +400,7 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         parts.join(".")
     }
 
-    private static void commitVersionBump(ExecOperations execOperations, Project project, File versionPropsFile) {
+    private static void commitVersionBump(ExecOperations execOperations, File rootDir, File versionPropsFile) {
         Properties props = new Properties()
         versionPropsFile.withInputStream { props.load(it) }
         String versionName = props.getProperty("versionName")
@@ -405,11 +410,11 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         // (observed on antimine_with_pics_as_prizes), those would get swept into
         // this commit too. Scoping both calls to the exact file avoids that.
         execOperations.exec { spec ->
-            spec.workingDir = project.rootDir
+            spec.workingDir = rootDir
             spec.commandLine = ["git", "add", versionPropsFile.absolutePath]
         }
         execOperations.exec { spec ->
-            spec.workingDir = project.rootDir
+            spec.workingDir = rootDir
             spec.commandLine = ["git", "commit", "-m", "rel: ${versionName}" as String, "--", versionPropsFile.absolutePath]
         }
     }

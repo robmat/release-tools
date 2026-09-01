@@ -32,7 +32,7 @@
 # RELEASE_TRACKER.md's "Shared catalog" column for per-repo/branch status.
 
 [versions]
-agp = "9.3.1"
+agp = "9.3.2"
 kotlin = "2.2.10"
 gpp = "4.0.0"
 detekt = "1.23.8"

@@ -54,6 +54,12 @@ dependencies {
     // multi-module repos get it fleet-wide without per-module build.gradle
     // edits - same plugin-marker-POM technique as triplet/cpd above.
     implementation libs.jlleitschuh.ktlint.gradle.plugin
+
+    // detekt static analysis, applied programmatically to every Kotlin-bearing
+    // subproject the same way ktlint is above - one shared config
+    // (config/detekt/detekt.yml) instead of the 7+ near-identical per-repo
+    // detekt.yml files this replaces.
+    implementation libs.detekt.gradle.plugin
 }
 
 // CodeNarc is Groovy's equivalent of the detekt setup every Android app in this

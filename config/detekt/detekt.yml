@@ -1,0 +1,41 @@
+# Fleet-wide detekt policy, applied to every Kotlin-bearing subproject by
+# ReleaseToolsPlugin.wireDetektFleetWide - same centralization as ktlint's
+# config in that plugin, and as codenarc.xml is for this repo's own Groovy
+# sources. buildUponDefaultConfig (set in ReleaseToolsPlugin) means this file
+# only needs to list *overrides* to detekt's own sane defaults, not restate
+# every rule.
+naming:
+  FunctionNaming:
+    # Same rationale as the fleet's ktlint config
+    # (ktlint_function_naming_ignore_when_annotated_with) - a @Composable
+    # function's PascalCase name is the correct, conventional style, not a
+    # violation of a rule that predates Compose. A no-op for repos with no
+    # Compose code.
+    ignoreAnnotated: ['Composable']
+
+complexity:
+  LongMethod:
+    ignoreAnnotated: ['Composable']
+  LongParameterList:
+    ignoreAnnotated: ['Composable']
+  TooManyFunctions:
+    ignoreAnnotatedFunctions: ['Composable']
+
+style:
+  MagicNumber:
+    # Loop/index/percentage literals and the like are the common false-positive
+    # source for this rule; constants, companion-object properties, enum
+    # bodies, and ranges are already self-documenting without a named
+    # constant. Tests commonly build ad-hoc fixture data with inline numbers.
+    ignoreNumbers: ['-1', '0', '1', '2', '100']
+    ignoreAnnotated: ['Composable', 'Preview']
+    ignoreConstantDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreEnums: true
+    ignoreRanges: true
+    excludes: ['**/test/**', '**/androidTest/**']
+  MaxLineLength:
+    # Matches the fleet's ktlint max_line_length so the same line isn't
+    # flagged twice, at two different thresholds, by two different tools.
+    maxLineLength: 140
+    excludeCommentStatements: true

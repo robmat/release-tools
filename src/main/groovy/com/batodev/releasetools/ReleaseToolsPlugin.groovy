@@ -1,5 +1,7 @@
 package com.batodev.releasetools
 
+import io.gitlab.arturbosch.detekt.Detekt
+import io.gitlab.arturbosch.detekt.DetektPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
@@ -87,19 +89,26 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         // 27+ copies drifting out of sync on threshold/language).
         project.pluginManager.apply('org.danilopianini.cpd')
         configureCpd(project)
+        wireCheckDependency(project, 'cpdCheck')
 
-        // ktlint formatting, fleet-wide. Wired from here (rather than an `id` in
-        // every module's build.gradle, the way detekt is declared) because unlike
-        // detekt it needs no per-module config path - one policy for the whole
-        // workspace - and because this plugin is only ever applied to a repo's
+        // ktlint formatting and detekt static analysis, fleet-wide. Wired from here
+        // (rather than an `id` in every module's build.gradle - detekt's own `id` used
+        // to be declared individually in each of antimine_with_pics_as_prizes' 19
+        // modules, for example) because this plugin is only ever applied to a repo's
         // main app module, not every subproject (confirmed: `com.batodev.releasetools`
-        // appears in exactly one build.gradle per repo even in 19-module repos like
-        // antimine_with_pics_as_prizes, where detekt's own `id` is declared in all
-        // 19 individually instead). Walking rootProject.subprojects here and
-        // registering a deferred `withPlugin` listener - rather than requiring
+        // appears in exactly one build.gradle per repo). Walking rootProject.subprojects
+        // here and registering a deferred `withPlugin` listener - rather than requiring
         // this plugin to already be applied - is what reaches every Kotlin module
         // regardless of Gradle's subproject configuration order.
         wireKtlintFleetWide(project)
+        wireDetektFleetWide(project)
+
+        // AGP already wires `lint` into a module's own `check` by default, but this
+        // makes it explicit fleet-wide rather than relying on AGP's default holding -
+        // and it's the only one of the four verification tasks (lint/detekt/cpdCheck/
+        // ktlintCheck) not already wired above/below, so `./gradlew check` runs all
+        // four uniformly everywhere they apply.
+        wireLintFleetWide(project)
     }
 
     // Listened for by plugin id, not just 'org.jetbrains.kotlin.android'/'org.jetbrains.kotlin.jvm'
@@ -197,6 +206,83 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         // use Compose APIs, so adding it to every Kotlin module (not just the
         // ones using Compose today) is a no-op for the rest rather than noise.
         subproject.dependencies.add('ktlintRuleset', composeRulesCoordinate)
+
+        wireCheckDependency(subproject, 'ktlintCheck')
+    }
+
+    private static void wireDetektFleetWide(Project project) {
+        project.rootProject.subprojects.each { subproject ->
+            KOTLIN_BEARING_PLUGIN_IDS.each { pluginId ->
+                subproject.pluginManager.withPlugin(pluginId) {
+                    applyDetekt(subproject)
+                }
+            }
+        }
+    }
+
+    private static void applyDetekt(Project subproject) {
+        // Same double-apply guard as applyKtlint above - a module can match more
+        // than one KOTLIN_BEARING_PLUGIN_IDS entry.
+        if (subproject.plugins.hasPlugin(DetektPlugin)) {
+            return
+        }
+
+        // Applied by class reference rather than by string id, for the same reason
+        // applyKtlint above does - id-based lookup only resolves against a
+        // subproject's *own* buildscript classpath, which doesn't include detekt
+        // unless that specific subproject also declares `id("com.batodev.releasetools")`.
+        subproject.pluginManager.apply(DetektPlugin)
+
+        VersionCatalogsExtension catalogs = subproject.rootProject.extensions.getByType(VersionCatalogsExtension)
+        def libs = catalogs.named('libs')
+        String detektVersion = libs.findVersion('detekt').get().requiredVersion
+
+        // config/detekt/detekt.yml lives alongside this plugin's own sources, same
+        // relative-path technique pmdVersion() below uses to read libs.versions.toml -
+        // resolved against the *consuming* project's rootDir, not this plugin's.
+        File configFile = new File(subproject.rootProject.projectDir, "../release-tools/config/detekt/detekt.yml")
+
+        subproject.extensions.configure('detekt') { ext ->
+            ext.toolVersion = detektVersion
+            // Start from detekt's own curated defaults and only apply this file's
+            // overrides on top, rather than requiring it to restate every rule from
+            // scratch - matches how the fleet's ktlint config only lists overrides too.
+            ext.buildUponDefaultConfig = true
+            ext.config.setFrom(configFile)
+        }
+
+        subproject.tasks.withType(Detekt).configureEach { task ->
+            // Same generated/vendored exclusions as applyKtlint's ext.filter above -
+            // neither is ours to author or fix the style/complexity of.
+            task.exclude '**/generated/**'
+            task.exclude '**/core/qqwing/**'
+            task.exclude '**/name/boyle/chris/**'
+        }
+
+        wireCheckDependency(subproject, 'detekt')
+    }
+
+    // AGP already wires a module's own `lint` into its `check` by default; this is
+    // an explicit fleet-wide restatement of that (see the comment where this is
+    // called from apply()), not a substitute for AGP's own wiring.
+    private static void wireLintFleetWide(Project project) {
+        project.rootProject.subprojects.each { subproject ->
+            ['com.android.application', 'com.android.library'].each { pluginId ->
+                subproject.pluginManager.withPlugin(pluginId) {
+                    wireCheckDependency(subproject, 'lint')
+                }
+            }
+        }
+    }
+
+    // Task-name-based (not TaskProvider-based) so it stays a no-op if the named task
+    // never actually gets registered on this subproject, rather than throwing -
+    // matches.named's lazy "throw only if actually realized without existing"
+    // semantics without callers here needing their own try/catch.
+    private static void wireCheckDependency(Project project, String taskName) {
+        project.tasks.named('check').configure { task ->
+            task.dependsOn(project.tasks.matching { it.name == taskName })
+        }
     }
 
     // 50 tokens (vs PMD CPD's own default of 100) matches the threshold

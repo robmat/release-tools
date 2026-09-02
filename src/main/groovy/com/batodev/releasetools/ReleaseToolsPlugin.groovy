@@ -279,8 +279,18 @@ class ReleaseToolsPlugin implements Plugin<Project> {
     // never actually gets registered on this subproject, rather than throwing -
     // matches.named's lazy "throw only if actually realized without existing"
     // semantics without callers here needing their own try/catch.
+    //
+    // Also matches on 'check' itself, rather than tasks.named('check') - this is called
+    // directly from apply() (line 92, for cpdCheck), before the caller's own `check` task
+    // is guaranteed to exist yet: a consuming build.gradle's `plugins {}` block resolves
+    // top-to-bottom, and com.batodev.releasetools can be listed ahead of com.android.*/
+    // java (whichever supplies `check` via the base plugin) - confirmed by
+    // antimine_with_pics_as_prizes' :app, where it was. tasks.named('check') requires the
+    // task to already be registered; tasks.matching{}.configureEach{} instead reacts
+    // whenever a task named 'check' shows up, so this plugin's own application order
+    // relative to the base/Android plugin no longer matters.
     private static void wireCheckDependency(Project project, String taskName) {
-        project.tasks.named('check').configure { task ->
+        project.tasks.matching { it.name == 'check' }.configureEach { task ->
             task.dependsOn(project.tasks.matching { it.name == taskName })
         }
     }

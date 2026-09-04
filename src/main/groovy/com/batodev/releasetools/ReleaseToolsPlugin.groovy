@@ -448,7 +448,13 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         String repoName = project.rootDir.name
         File externalRoot = new File(buildOutputBase(project), repoName)
         project.rootProject.layout.buildDirectory.set(new File(externalRoot, "root"))
-        project.layout.buildDirectory.set(new File(externalRoot, project.name))
+        // Relocate every subproject, not just the one applying this plugin - otherwise
+        // sibling modules the plugin doesn't run in (e.g. library modules in a multi-module
+        // repo where only :app applies it) keep building into their own local build/ inside
+        // the synced tree, defeating the point of this redirect for the whole repo.
+        project.rootProject.subprojects.each { subproject ->
+            subproject.layout.buildDirectory.set(new File(externalRoot, subproject.name))
+        }
     }
 
     // Sibling to the project on its own drive rather than inside it, so it's still outside

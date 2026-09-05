@@ -157,7 +157,7 @@ googlePlayAppUpdateKtx = "2.1.0"
 # (normally implicit via the Kotlin Gradle plugin) - its version must track that
 # repo's own applied plugin version (see its root build.gradle's classpath line),
 # not the generic `kotlin` alias above, which other repos' plugin blocks use.
-antimineKotlinStdlib = "2.2.20"
+antimineKotlinStdlib = "2.4.10"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }

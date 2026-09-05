@@ -136,6 +136,28 @@ ktlintGradlePlugin = "14.2.0"
 # ruleset loading.
 ktlintEngine = "1.8.0"
 composeRulesKtlint = "0.6.4"
+androidxRecyclerview = "1.4.0"
+antimineLifecycleViewmodelKtx = "2.9.3"
+antimineLifecycleLivedataKtx = "2.9.3"
+antimineLifecycleCommonJava8 = "2.9.3"
+androidxTestCoreKtx = "1.7.0"
+androidxTestOrchestrator = "1.6.1"
+androidxWear = "1.3.0"
+androidxFragmentTesting = "1.8.9"
+squareupMoshi = "1.15.2"
+nhaarmanMockitoKotlin = "2.2.0"
+mockk = "1.14.5"
+kotlinxMetadataJvm = "0.9.0"
+amplitudeAndroidSdk = "3.35.1"
+squareupOkhttp = "5.1.0"
+playServicesInstantapps = "18.2.0"
+playServicesAuth = "21.4.0"
+googlePlayAppUpdateKtx = "2.1.0"
+# antimine_with_pics_as_prizes explicitly declares kotlin-stdlib in every module
+# (normally implicit via the Kotlin Gradle plugin) - its version must track that
+# repo's own applied plugin version (see its root build.gradle's classpath line),
+# not the generic `kotlin` alias above, which other repos' plugin blocks use.
+antimineKotlinStdlib = "2.2.20"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }
@@ -266,6 +288,32 @@ mikepenz-aboutlibraries-compose = { module = "com.mikepenz:aboutlibraries-compos
 androidx-annotation-experimental = { module = "androidx.annotation:annotation-experimental", version.ref = "androidxAnnotationExperimental" }
 google-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "sudokuAccompanist" }
 google-accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "sudokuAccompanist" }
+
+# antimine_with_pics_as_prizes
+androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "androidxRecyclerview" }
+androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "antimineLifecycleViewmodelKtx" }
+androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "antimineLifecycleLivedataKtx" }
+androidx-lifecycle-common-java8 = { module = "androidx.lifecycle:lifecycle-common-java8", version.ref = "antimineLifecycleCommonJava8" }
+androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "androidxRoom" }
+androidx-test-core-ktx = { module = "androidx.test:core-ktx", version.ref = "androidxTestCoreKtx" }
+androidx-test-orchestrator = { module = "androidx.test:orchestrator", version.ref = "androidxTestOrchestrator" }
+androidx-wear-wear = { module = "androidx.wear:wear", version.ref = "androidxWear" }
+androidx-fragment-testing = { module = "androidx.fragment:fragment-testing", version.ref = "androidxFragmentTesting" }
+koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
+squareup-moshi = { module = "com.squareup.moshi:moshi", version.ref = "squareupMoshi" }
+squareup-moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "squareupMoshi" }
+squareup-moshi-kotlin-codegen = { module = "com.squareup.moshi:moshi-kotlin-codegen", version.ref = "squareupMoshi" }
+nhaarman-mockito-kotlin = { module = "com.nhaarman.mockitokotlin2:mockito-kotlin", version.ref = "nhaarmanMockitoKotlin" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+kotlinx-metadata-jvm = { module = "org.jetbrains.kotlinx:kotlinx-metadata-jvm", version.ref = "kotlinxMetadataJvm" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesCore" }
+kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesCore" }
+amplitude-android-sdk = { module = "com.amplitude:android-sdk", version.ref = "amplitudeAndroidSdk" }
+squareup-okhttp3-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "squareupOkhttp" }
+play-services-instantapps = { module = "com.google.android.gms:play-services-instantapps", version.ref = "playServicesInstantapps" }
+play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+google-play-app-update-ktx = { module = "com.google.android.play:app-update-ktx", version.ref = "googlePlayAppUpdateKtx" }
+antimine-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "antimineKotlinStdlib" }
 
 # release-tools' own build.gradle dependencies (the plugin's implementation
 # classpath, not something a consuming app declares) - real implementation

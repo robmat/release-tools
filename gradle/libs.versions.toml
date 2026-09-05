@@ -153,11 +153,6 @@ squareupOkhttp = "5.1.0"
 playServicesInstantapps = "18.2.0"
 playServicesAuth = "21.4.0"
 googlePlayAppUpdateKtx = "2.1.0"
-# antimine_with_pics_as_prizes explicitly declares kotlin-stdlib in every module
-# (normally implicit via the Kotlin Gradle plugin) - its version must track that
-# repo's own applied plugin version (see its root build.gradle's classpath line),
-# not the generic `kotlin` alias above, which other repos' plugin blocks use.
-antimineKotlinStdlib = "2.4.10"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }
@@ -313,7 +308,9 @@ squareup-okhttp3-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref 
 play-services-instantapps = { module = "com.google.android.gms:play-services-instantapps", version.ref = "playServicesInstantapps" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 google-play-app-update-ktx = { module = "com.google.android.play:app-update-ktx", version.ref = "googlePlayAppUpdateKtx" }
-antimine-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "antimineKotlinStdlib" }
+antimine-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 
 # release-tools' own build.gradle dependencies (the plugin's implementation
 # classpath, not something a consuming app declares) - real implementation
@@ -335,6 +332,7 @@ nlopez-compose-rules-ktlint = { module = "io.nlopez.compose.rules:ktlint", versi
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 triplet-play = { id = "com.github.triplet.play", version.ref = "gpp" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

@@ -76,7 +76,8 @@ lifecycleRuntimeKtx = "2.11.0"
 lifecycleViewmodelCompose = "2.11.0"
 coreSplashscreen = "1.2.0"
 konfettiXml = "2.0.4"
-gdx = "1.13.1"
+gdx = "1.14.2"
+aboutlibraries = "15.2.0"
 desugarJdkLibs = "2.1.5"
 androidxGridlayout = "1.1.0"
 androidxAnnotation = "1.10.0"
@@ -336,3 +337,5 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 triplet-play = { id = "com.github.triplet.play", version.ref = "gpp" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+aboutlibraries-core = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
+aboutlibraries-android = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutlibraries" }

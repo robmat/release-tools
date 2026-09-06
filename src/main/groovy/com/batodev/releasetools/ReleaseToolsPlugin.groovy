@@ -270,9 +270,36 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             ['com.android.application', 'com.android.library'].each { pluginId ->
                 subproject.pluginManager.withPlugin(pluginId) {
                     wireCheckDependency(subproject, 'lint')
+                    wireVerifyLintResultsClean(subproject)
                 }
             }
         }
+    }
+
+    // See VerifyLintResultsCleanTask's own doc comment for what/why. finalizedBy
+    // (not dependsOn) so this still runs - and still reports - even if `lint`
+    // itself already failed the build on a fatal-severity issue; and the file
+    // collection is a live view over build/reports resolved at execution time,
+    // not configuration time, so it sees whatever `lint` actually just wrote
+    // regardless of relocateBuildDirs() having moved buildDir off to
+    // D:\tmp\gradle-builds (see gradle_build_output_redirect).
+    private static void wireVerifyLintResultsClean(Project subproject) {
+        def verifyTask = subproject.tasks.register('verifyLintResultsClean', VerifyLintResultsCleanTask) { task ->
+            task.group = 'verification'
+            task.description = 'Fails the build if lint reported any issue at all, at any severity.'
+            // Explicit dependsOn (not just the finalizedBy below) so Gradle's own
+            // task-validation doesn't flag this as an implicit dependency - the
+            // file collection below reads report files that are declared outputs
+            // of `lint`'s own dependencies (lintReport<Variant>), and Gradle wants
+            // that relationship stated, not just inferred from execution order.
+            task.dependsOn(subproject.tasks.named('lint'))
+            task.lintXmlReports.from(
+                    subproject.layout.buildDirectory.asFileTree.matching {
+                        it.include('reports/lint-results-*.xml')
+                    }
+            )
+        }
+        subproject.tasks.named('lint') { it.finalizedBy(verifyTask) }
     }
 
     // Task-name-based (not TaskProvider-based) so it stays a no-op if the named task

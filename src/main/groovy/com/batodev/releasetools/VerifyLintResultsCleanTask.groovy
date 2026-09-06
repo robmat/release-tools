@@ -40,7 +40,7 @@ abstract class VerifyLintResultsCleanTask extends DefaultTask {
                 offenders << "${file.name}: [${issue.@id}] ${issue.@message}"
             }
         }
-        if (!offenders.isEmpty()) {
+        if (!offenders.empty) {
             throw new GradleException(
                     "lint reported ${offenders.size()} issue(s), but this project's policy is a " +
                             "clean lint report - fix it, or suppress it with a documented reason " +

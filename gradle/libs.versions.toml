@@ -85,6 +85,7 @@ androidxWebkit = "1.16.0"
 accompanistPager = "0.36.0"
 ageSignals = "0.0.1-beta01"
 androidxCoreAnimation = "1.0.0"
+androidxWork = "2.10.1"
 composeBom = "2026.06.01"
 # snake-game-android-main pins Compose directly (no BOM) - its own version line,
 # not the sgtpuzzles family's BOM-managed one (see policy note above).
@@ -218,6 +219,7 @@ android-tools-desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs"
 androidx-gridlayout = { module = "androidx.gridlayout:gridlayout", version.ref = "androidxGridlayout" }
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
 androidx-webkit = { module = "androidx.webkit:webkit", version.ref = "androidxWebkit" }
+androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "androidxWork" }
 google-accompanist-pager = { module = "com.google.accompanist:accompanist-pager", version.ref = "accompanistPager" }
 google-play-age-signals = { module = "com.google.android.play:age-signals", version.ref = "ageSignals" }
 androidx-core-animation = { module = "androidx.core:core-animation", version.ref = "androidxCoreAnimation" }

@@ -6,10 +6,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.process.ExecOperations
 import org.jlleitschuh.gradle.ktlint.KtlintPlugin
-
-import javax.inject.Inject
 
 /**
  * Shared release-automation tasks for the game projects in this workspace.
@@ -17,13 +14,6 @@ import javax.inject.Inject
  * in each project's settings.gradle - no publishing step required.
  */
 class ReleaseToolsPlugin implements Plugin<Project> {
-
-    private final ExecOperations execOperations
-
-    @Inject
-    ReleaseToolsPlugin(ExecOperations execOperations) {
-        this.execOperations = execOperations
-    }
 
     @Override
     void apply(Project project) {
@@ -47,28 +37,26 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             bumpVersion(versionPropsFile)
         }
 
-        File rootDir = project.rootDir
-
-        project.tasks.register("createNewInternalTestVersion") { task ->
+        project.tasks.register("createNewInternalTestVersion", CreateNewInternalTestVersionTask) { task ->
             task.group = "publishing"
             task.description = "Bumps versionCode/versionName in version.properties, then builds and publishes to the internal testing track."
             task.dependsOn(extension.publishTaskName)
-            // doLast only runs once publishReleaseBundle (a dependency) has actually
-            // succeeded - if the build fails partway (e.g. a compile error), Gradle
-            // aborts before this runs, so a failed release leaves an uncommitted bump
-            // on disk instead of a commit falsely recording a published release.
-            //
-            // Captures rootDir (a File) rather than project itself - the config
-            // cache can't serialize a Project reference captured in a task action.
-            task.doLast {
-                commitVersionBump(execOperations, rootDir, versionPropsFile)
-            }
+            // The task's own @TaskAction (the commit) only runs once publishReleaseBundle
+            // (a dependency) has actually succeeded - if the build fails partway (e.g. a
+            // compile error), Gradle aborts before this runs, so a failed release leaves
+            // an uncommitted bump on disk instead of a commit falsely recording a
+            // published release.
+            task.versionPropsFile.set(versionPropsFile)
+            task.repoRootDir.set(project.rootDir)
         }
 
         project.tasks.register("promoteInternalToProd", PromoteInternalToProdTask) { task ->
             task.group = "publishing"
             task.description = "Promotes the current internal testing release to production."
             task.promoteTaskName.set(extension.promoteTaskName)
+            task.repoRootDir.set(project.rootDir)
+            task.taskPathPrefix.set(project.path)
+            task.repoDisplayName.set(project.name)
         }
 
         // Applied here instead of via `id` in every consuming build.gradle - it
@@ -527,24 +515,5 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         }
         parts[1] = String.valueOf(Integer.parseInt(parts[1]) + 1)
         parts.join(".")
-    }
-
-    private static void commitVersionBump(ExecOperations execOperations, File rootDir, File versionPropsFile) {
-        Properties props = new Properties()
-        versionPropsFile.withInputStream { props.load(it) }
-        String versionName = props.getProperty("versionName")
-
-        // "git commit" with no pathspec commits the *entire* index, not just what
-        // was just "git add"-ed - if the repo already has unrelated files staged
-        // (observed on antimine_with_pics_as_prizes), those would get swept into
-        // this commit too. Scoping both calls to the exact file avoids that.
-        execOperations.exec { spec ->
-            spec.workingDir = rootDir
-            spec.commandLine = ["git", "add", versionPropsFile.absolutePath]
-        }
-        execOperations.exec { spec ->
-            spec.workingDir = rootDir
-            spec.commandLine = ["git", "commit", "-m", "rel: ${versionName}" as String, "--", versionPropsFile.absolutePath]
-        }
     }
 }

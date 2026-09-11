@@ -36,6 +36,12 @@ abstract class CreateNewInternalTestVersionTask extends DefaultTask {
     @Internal
     abstract DirectoryProperty getRepoRootDir()
 
+    // Only set (by ReleaseToolsPlugin) when -PwhatsNew was actually used for this
+    // invocation - see writeWhatsNewIfProvided(). Optional so a plain release (no
+    // whatsNew) leaves this unset and skips the cleanup step below entirely.
+    @Internal
+    abstract RegularFileProperty getReleaseNotesFile()
+
     @TaskAction
     void commitVersionBump() {
         File rootDir = repoRootDir.get().asFile
@@ -55,6 +61,26 @@ abstract class CreateNewInternalTestVersionTask extends DefaultTask {
         execOperations.exec { spec ->
             spec.workingDir = rootDir
             spec.commandLine = ["git", "commit", "-m", "rel: ${versionName}" as String, "--", file.absolutePath]
+        }
+
+        deleteWhatsNewScratchFile()
+    }
+
+    // writeWhatsNewIfProvided() (see ReleaseToolsPlugin) wrote this file into the source
+    // tree only so publishReleaseBundle's execution - which happens before this task's own
+    // action runs, per the dependsOn above - would pick it up as that one build's release
+    // notes. Left in place afterward it just shows up as an untracked/dirty file every
+    // release (it was never meant to be a committed, reusable notes template), so it's
+    // deleted here now that publishReleaseBundle has already consumed it.
+    private void deleteWhatsNewScratchFile() {
+        if (!releaseNotesFile.isPresent()) {
+            return
+        }
+        File notesFile = releaseNotesFile.get().asFile
+        notesFile.delete()
+        File notesDir = notesFile.parentFile
+        if (notesDir.exists() && notesDir.list().length == 0) {
+            notesDir.delete()
         }
     }
 }

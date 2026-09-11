@@ -33,8 +33,10 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         // createNewInternalTestVersion builds and publishes the newly bumped version
         // instead of the pre-bump one (Gradle can't reconfigure mid-run, so editing the
         // file from a task *action* would only take effect on the *next* invocation).
+        File whatsNewFile = null
         if (wasRequested(project, "createNewInternalTestVersion")) {
             bumpVersion(versionPropsFile)
+            whatsNewFile = writeWhatsNewIfProvided(project)
         }
 
         project.tasks.register("createNewInternalTestVersion", CreateNewInternalTestVersionTask) { task ->
@@ -48,6 +50,13 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             // published release.
             task.versionPropsFile.set(versionPropsFile)
             task.repoRootDir.set(project.rootDir)
+            // Only set when writeWhatsNewIfProvided() actually wrote a scratch file (i.e.
+            // -PwhatsNew was passed this invocation) - see deleteWhatsNewScratchFile()'s
+            // own doc comment for why this needs deleting after publishReleaseBundle
+            // consumes it, rather than being left as a committed template.
+            if (whatsNewFile != null) {
+                task.releaseNotesFile.set(whatsNewFile)
+            }
         }
 
         project.tasks.register("promoteInternalToProd", PromoteInternalToProdTask) { task ->
@@ -502,6 +511,24 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         props.setProperty("versionName", nextName)
 
         file.withOutputStream { props.store(it, "Bumped by createNewInternalTestVersion") }
+    }
+
+    // Optional `-PwhatsNew="..."` project property, read at configuration time for the
+    // same reason bumpVersion() above is: Gradle Play Publisher's publishReleaseBundle
+    // task (a dependency of createNewInternalTestVersion) reads its release notes from
+    // this file at *its own* execution, which happens before createNewInternalTestVersion's
+    // own @TaskAction - writing the file from that action would only take effect on the
+    // next invocation. Absent the property, this is a no-op, leaving whatever release
+    // notes (if any) already exist on disk untouched, matching today's default behavior.
+    private static File writeWhatsNewIfProvided(Project project) {
+        if (!project.hasProperty("whatsNew")) {
+            return null
+        }
+        File notesDir = project.file("src/main/play/release-notes/en-US")
+        notesDir.mkdirs()
+        File notesFile = new File(notesDir, "default.txt")
+        notesFile.text = project.property("whatsNew").toString()
+        notesFile
     }
 
     // versionName follows a major.minor scheme only (no patch segment). Any existing

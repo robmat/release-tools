@@ -256,6 +256,11 @@ androidx-browser = { module = "androidx.browser:browser", version.ref = "android
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
 androidx-test-monitor = { module = "androidx.test:monitor", version.ref = "androidxTestMonitor" }
 androidx-concurrent-futures = { module = "androidx.concurrent:concurrent-futures", version.ref = "androidxConcurrentFutures" }
+# androidx.test's ViewCapture references SuspendToFutureAdapter, which only ships in the
+# -ktx artifact. Harmless while androidTest is unminified; once testBuildType is release,
+# R8 fails minifyReleaseAndroidTestWithR8 with "Missing class
+# androidx.concurrent.futures.SuspendToFutureAdapter".
+androidx-concurrent-futures-ktx = { module = "androidx.concurrent:concurrent-futures-ktx", version.ref = "androidxConcurrentFutures" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidxRoom" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "androidxRoom" }

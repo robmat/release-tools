@@ -6,9 +6,10 @@ plugins {
     id 'codenarc'
 }
 
-// This workspace lives inside a Box Sync-synced folder, which intermittently
-// locks files under build/ while syncing. Keep this project's own output outside
-// the synced tree — the JVM temp dir never is.
+// Keep this project's own output out of the checkout, the same way the plugin does for every
+// project it's applied to. (Originally because the workspace sat in a Box Sync-synced folder
+// that intermittently locked files under build/ while syncing; the workspace has since moved
+// to a plain local folder, but keeping build output out of the repo is still wanted.)
 layout.buildDirectory.set(new File(System.getProperty('java.io.tmpdir'), 'gradle-builds/release-tools'))
 
 repositories {

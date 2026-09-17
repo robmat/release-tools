@@ -420,7 +420,7 @@ class ReleaseToolsPlugin implements Plugin<Project> {
     }
 
     // service account credentials file lives one level above every game's repo root
-    // (i.e. directly under the Box Sync workspace root), alongside keystore.properties.
+    // (i.e. directly under the workspace root, D:\gry), alongside keystore.properties.
     private static void configurePlayPublishing(Project project) {
         project.extensions.configure('play') { extension ->
             extension.serviceAccountCredentials.set(
@@ -456,10 +456,12 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         !stableKeyword && !isStableVersion
     }
 
-    // These workspaces live inside a Box Sync-synced folder, which intermittently
-    // locks files under build/intermediates while syncing (observed as
-    // "Couldn't delete ...R.jar" build failures). Redirecting build output to a
-    // local, non-synced directory avoids that entirely.
+    // Originally added because these workspaces lived inside a Box Sync-synced folder, which
+    // intermittently locked files under build/intermediates while syncing (observed as
+    // "Couldn't delete ...R.jar" build failures). The workspace has since moved to a plain
+    // local folder (D:\gry), so that specific hazard is gone - but the redirect stays: it keeps
+    // build output off the repos entirely, which is what makes `git status` meaningful across
+    // ~29 repos and keeps the checkouts small.
     //
     // The redirect target must share a drive letter with the project: KSP2's Analysis API
     // worker throws "this and base files have different roots" when relativizing a generated
@@ -475,16 +477,17 @@ class ReleaseToolsPlugin implements Plugin<Project> {
         // Relocate every subproject, not just the one applying this plugin - otherwise
         // sibling modules the plugin doesn't run in (e.g. library modules in a multi-module
         // repo where only :app applies it) keep building into their own local build/ inside
-        // the synced tree, defeating the point of this redirect for the whole repo.
+        // the repo, defeating the point of this redirect for the whole repo.
         project.rootProject.subprojects.each { subproject ->
             subproject.layout.buildDirectory.set(new File(externalRoot, subproject.name))
         }
     }
 
-    // Sibling to the project on its own drive rather than inside it, so it's still outside
-    // the Box Sync sync tree - but same drive, so KSP2 can always relativize against it.
+    // Sibling to the project on its own drive rather than inside it, so build output stays out
+    // of the repo - but same drive, so KSP2 can always relativize against it.
     // Deliberately not a fixed drive letter: derived from wherever the project is actually
-    // checked out, so this keeps working if that ever differs machine to machine.
+    // checked out, so this keeps working if that ever differs machine to machine (it already
+    // has once - the workspace moved from E: to D:).
     private static File buildOutputBase(Project project) {
         File driveRoot = project.rootDir.toPath().root.toFile()
         new File(driveRoot, "tmp/gradle-builds")

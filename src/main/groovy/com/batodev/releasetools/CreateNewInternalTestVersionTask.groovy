@@ -73,7 +73,7 @@ abstract class CreateNewInternalTestVersionTask extends DefaultTask {
     // release (it was never meant to be a committed, reusable notes template), so it's
     // deleted here now that publishReleaseBundle has already consumed it.
     private void deleteWhatsNewScratchFile() {
-        if (!releaseNotesFile.isPresent()) {
+        if (!releaseNotesFile.present) {
             return
         }
         File notesFile = releaseNotesFile.get().asFile

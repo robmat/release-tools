@@ -60,6 +60,8 @@ zoomlayout = "1.9.0"
 androidsvgAar = "1.4"
 gson = "2.14.0"
 firebaseBom = "34.16.0"
+googleServices = "4.4.4"
+firebaseCrashlyticsPlugin = "3.0.8"
 playServicesGamesV2 = "21.0.0"
 junitJupiter = "6.1.2"
 hamcrest = "3.0"
@@ -192,6 +194,7 @@ caverock-androidsvg-aar = { module = "com.caverock:androidsvg-aar", version.ref 
 google-code-gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 play-services-games-v2 = { module = "com.google.android.gms:play-services-games-v2", version.ref = "playServicesGamesV2" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junitJupiter" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junitJupiter" }
@@ -345,6 +348,8 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsPlugin" }
 triplet-play = { id = "com.github.triplet.play", version.ref = "gpp" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 aboutlibraries-core = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }

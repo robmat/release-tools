@@ -57,6 +57,16 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             if (whatsNewFile != null) {
                 task.releaseNotesFile.set(whatsNewFile)
             }
+            // Configuration-time side effects (bumpVersion/writeWhatsNewIfProvided above)
+            // only happen when configuration actually runs. With the configuration cache on
+            // (most repos set org.gradle.configuration-cache=true), a second release with the
+            // same arguments reused the stored entry, skipped configuration, and so skipped
+            // the bump - re-publishing the previous versionCode (verified on sgtpuzzles with
+            // a dry run: "Configuration cache entry reused", versionCode unchanged). Marking
+            // the task incompatible makes Gradle neither store nor reuse an entry whenever it
+            // is in the task graph, so every release configures from scratch.
+            task.notCompatibleWithConfigurationCache(
+                    "Bumps version.properties during configuration; a cache hit would skip the bump.")
         }
 
         project.tasks.register("promoteInternalToProd", PromoteInternalToProdTask) { task ->
@@ -66,6 +76,12 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             task.repoRootDir.set(project.rootDir)
             task.taskPathPrefix.set(project.path)
             task.repoDisplayName.set(project.name)
+            // Not strictly required (no configuration-time side effects), but it shells out
+            // to a nested Gradle build against the same project and is run rarely, by hand -
+            // nothing to gain from caching its configuration, and it keeps both release
+            // tasks behaving identically with respect to the configuration cache.
+            task.notCompatibleWithConfigurationCache(
+                    "Release task: runs a nested Gradle build; always configure fresh.")
         }
 
         // Applied here instead of via `id` in every consuming build.gradle - it
@@ -362,7 +378,9 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             // task is rare enough that a one-line addition here when it happens is
             // simpler than generic matching logic every subproject's tasks would pay
             // the configuration-time cost of.
-            List<String> generatedSourceTaskNames = ['generateBuildConfigClasses', 'generateAdIds']
+            // generateIosBuild: goods_sort_android's :ios IOSBuild.java (surfaced once that repo
+            // turned the configuration cache on).
+            List<String> generatedSourceTaskNames = ['generateBuildConfigClasses', 'generateAdIds', 'generateIosBuild']
             task.dependsOn(project.rootProject.subprojects.collectMany { subproject ->
                 subproject.tasks.matching { generatedSourceTaskNames.contains(it.name) }
             })

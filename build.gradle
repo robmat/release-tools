@@ -31,6 +31,9 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
 
+    // PlayApiTest: the resumable upload against a stand-in for Google's server.
+    testImplementation libs.junit
+
     // Applied programmatically onto consuming projects by ReleaseToolsPlugin,
     // so consuming build.gradle files no longer declare this id themselves.
     implementation libs.benmanes.gradle.versions.plugin

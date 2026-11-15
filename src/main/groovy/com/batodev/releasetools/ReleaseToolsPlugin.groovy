@@ -15,6 +15,9 @@ import org.jlleitschuh.gradle.ktlint.KtlintPlugin
  */
 class ReleaseToolsPlugin implements Plugin<Project> {
 
+    // The Play service account's key, one level above every game's repo root (directly under the workspace root).
+    private static final String PLAY_CREDENTIALS = "../play-console-api-465319-0f9c399097c5.json"
+
     @Override
     void apply(Project project) {
         relocateBuildDirs(project)
@@ -67,6 +70,24 @@ class ReleaseToolsPlugin implements Plugin<Project> {
             // is in the task graph, so every release configures from scratch.
             task.notCompatibleWithConfigurationCache(
                     "Bumps version.properties during configuration; a cache hit would skip the bump.")
+        }
+
+        // publishReleaseBundle's stand-in for bundles too big to upload in one go over a connection that breaks (see
+        // PlayApi); a project opts in with publishTaskName.set("publishReleaseBundleResumable"). The plain, unflavored
+        // release variant only, its bundle where AGP puts it.
+        project.tasks.register("publishReleaseBundleResumable", PublishBundleResumableTask) { task ->
+            task.group = "publishing"
+            task.description = "Uploads the release bundle to Play's internal track with a resumable upload."
+            task.dependsOn("bundleRelease")
+            task.bundle.set(project.layout.buildDirectory.file("outputs/bundle/release/${project.name}-release.aab"))
+            task.credentials.set(project.rootProject.file(PLAY_CREDENTIALS))
+            task.packageName.set(project.provider { project.extensions.getByName("android").defaultConfig.applicationId as String })
+            task.track.set("internal")
+            task.versionPropsFile.set(versionPropsFile)
+            task.releaseNotesDir.set(project.file("src/main/play/release-notes"))
+            task.dryRun.set(project.hasProperty("playDryRun"))
+            task.outputs.upToDateWhen { false }
+            task.notCompatibleWithConfigurationCache("Release task: publishes to Play; always configure fresh.")
         }
 
         project.tasks.register("promoteInternalToProd", PromoteInternalToProdTask) { task ->
@@ -441,8 +462,7 @@ class ReleaseToolsPlugin implements Plugin<Project> {
     // (i.e. directly under the workspace root, D:\gry), alongside keystore.properties.
     private static void configurePlayPublishing(Project project) {
         project.extensions.configure('play') { extension ->
-            extension.serviceAccountCredentials.set(
-                    project.rootProject.file("../play-console-api-465319-0f9c399097c5.json"))
+            extension.serviceAccountCredentials.set(project.rootProject.file(PLAY_CREDENTIALS))
             extension.track.set("internal")
             extension.defaultToAppBundles.set(true)
         }
